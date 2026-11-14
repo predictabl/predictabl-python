@@ -128,10 +128,26 @@ class Client:
             data.wait_ready(progress=progress, timeout=timeout)
         return data
 
+    def plan(self, question_id: str) -> Plan:
+        """The latest plan of a question (opportunity) planned earlier, e.g.
+        in the web app, to retrain it from code without planning again."""
+        got = self._t.get(f"/opportunities/{question_id}/spec") or {}
+        spec = got.get("spec")
+        if not spec:
+            raise errors.NotFound(f"Question {question_id!r} has no plan yet.")
+        return Plan(
+            id=spec["id"],
+            version=int(got.get("version") or 1),
+            opportunity_id=question_id,
+            spec=spec,
+            _client=self,
+        )
+
     # ---------------------------------------------------------------- models
 
     def models(self, limit: int = 50) -> list[Model]:
-        return [Model._from(self, row) for row in (self._t.get("/runs") or [])[:limit]]
+        rows = self._t.get("/runs", limit=limit) or []
+        return [Model._from(self, row) for row in rows[:limit]]
 
     def model(self, model_id: str) -> Model:
         return Model._from(self, self._t.get(f"/runs/{model_id}"))

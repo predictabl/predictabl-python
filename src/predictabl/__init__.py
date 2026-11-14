@@ -37,6 +37,7 @@ __all__ = [
     "upload",
     "data",
     "datasets",
+    "plan",
     "model",
     "models",
     "Client",
@@ -90,6 +91,10 @@ def data(data_id: str) -> Data:
 
 def datasets() -> list[Data]:
     return client().datasets()
+
+
+def plan(question_id: str) -> Plan:
+    return client().plan(question_id)
 
 
 def model(model_id: str) -> Model:

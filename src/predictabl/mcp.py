@@ -70,7 +70,7 @@ def build_server(client: Client):
         other tools. Returns: id, predicting (what it predicts), connection,
         engine, headline metric (+ value), starred, started_at."""
         out = []
-        for r in t.get("/runs") or []:
+        for r in t.get("/runs", limit=max(limit * 2, 50)) or []:
             if r.get("state") != "SUCCEEDED":
                 continue
             hm = r.get("headline_metric") or {}
