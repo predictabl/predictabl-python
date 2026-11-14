@@ -214,7 +214,7 @@ class Data:
             if self.status in ("error", "failed"):
                 progress.failed("Reading data", self.error or "")
                 reason = self.error or "unknown error"
-                raise errors.BuildFailed(f"Predictabl could not read this dataset: {reason}")
+                raise errors.BuildFailed(f"Could not read this dataset: {reason}")
             _check_timeout(started, timeout, "reading the data")
             self._client._sleep(progress)
 
