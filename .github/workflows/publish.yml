@@ -1,0 +1,24 @@
+# Publishes to PyPI when a GitHub release is published (tag vX.Y.Z).
+# Uses PyPI trusted publishing: no API token is stored here. Configure it once
+# on PyPI (project -> Publishing -> add GitHub publisher: this repo,
+# workflow publish.yml, environment pypi).
+name: Publish
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync && uv run pytest -q
+      - run: uv build
+      - name: Version matches the tag
+        run: |
+          v=$(python -c "import re;print(re.search(r'\"(.+)\"', open('src/predictabl/_version.py').read()).group(1))")
+          test "v$v" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != v$v"; exit 1; }
+      - uses: pypa/gh-action-pypi-publish@release/v1

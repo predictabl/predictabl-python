@@ -8,8 +8,11 @@ Skipped unless pointed at one:
     PREDICTABL_TEST_OTHER_KEY=pk_...      # a token of ANOTHER user
     uv run pytest -m integration
 
-The model ids below are models on the developer's instance; override with
-PREDICTABL_TEST_FLAT / _FORECAST / _EVENT (id prefixes are fine).
+Point it at models on the instance (id prefixes are fine):
+PREDICTABL_TEST_FLAT (a flat binary classifier, e.g. airline satisfaction,
+scored with rows from PREDICTABL_TEST_FLAT_CSV), PREDICTABL_TEST_FORECAST (a
+daily forecast with entity PREDICTABL_TEST_FORECAST_ENTITY and a date inside
+its data, PREDICTABL_TEST_FORECAST_AS_OF) and PREDICTABL_TEST_EVENT.
 Nothing here calls an LLM: scoring, scopes, isolation, uploads, and training
 an existing plan with the fast preset.
 """
@@ -33,10 +36,12 @@ pytestmark = [
     pytest.mark.skipif(not (URL and KEY), reason="no PREDICTABL_TEST_URL/KEY"),
 ]
 
-FLAT = os.environ.get("PREDICTABL_TEST_FLAT", "e81d2b92")  # airline satisfaction
-FORECAST = os.environ.get("PREDICTABL_TEST_FORECAST", "7a60c93a")  # Rossmann sales
-EVENT = os.environ.get("PREDICTABL_TEST_EVENT", "5301cca4")
-AIRLINE_CSV = Path.home() / "predictabl-kaggle-s6e10" / "data" / "train.csv"
+FLAT = os.environ.get("PREDICTABL_TEST_FLAT", "")
+FORECAST = os.environ.get("PREDICTABL_TEST_FORECAST", "")
+EVENT = os.environ.get("PREDICTABL_TEST_EVENT", "")
+AIRLINE_CSV = Path(os.environ.get("PREDICTABL_TEST_FLAT_CSV", "/nonexistent"))
+ENTITY = os.environ.get("PREDICTABL_TEST_FORECAST_ENTITY", "")
+AS_OF = os.environ.get("PREDICTABL_TEST_FORECAST_AS_OF", "")
 
 
 @pytest.fixture(scope="module")
@@ -51,6 +56,8 @@ def ids(c):
     all_ids = [m.id for m in c.models(limit=1000)]
 
     def full(prefix):
+        if not prefix:
+            pytest.skip("model id not configured")
         hits = [i for i in all_ids if i.startswith(prefix)]
         if not hits:
             pytest.skip(f"model {prefix} not on this instance")
@@ -121,11 +128,12 @@ def test_forecast_states_its_as_of(c, ids):
 
 
 def test_forecast_for_one_entity_at_a_chosen_date(c, ids):
-    preds = c.model(ids["forecast"]).predict(ids=["262"], as_of="2015-06-13")
-    assert preds.as_of == "2015-06-13"
-    assert len(preds) == 48  # the model's horizon
-    assert all(p["entity_id"].split("·")[0] == "262" for p in preds)
-    assert sum(p["prediction"] for p in preds) / 48 > 1000, "sales on open days"
+    if not (ENTITY and AS_OF):
+        pytest.skip("forecast entity/as_of not configured")
+    preds = c.model(ids["forecast"]).predict(ids=[ENTITY], as_of=AS_OF)
+    assert preds.as_of == AS_OF
+    assert len(preds) > 0
+    assert all(p["entity_id"].split("·")[0] == ENTITY for p in preds)
 
 
 def test_event_model_explains_an_empty_default_window(c, ids):
@@ -229,10 +237,8 @@ def test_mcp_server_over_stdio(ids):
             assert {"list_models", "predict", "predict_rows"} <= names
             listed = await s.call_tool("list_models", {"limit": 500})
             assert ids["flat"] in str(listed.content)
-            scored = await s.call_tool(
-                "predict", {"run_id": ids["forecast"], "top": 3, "as_of": "2015-06-13"}
-            )
-            assert "2015-06-13" in str(scored.content)
+            scored = await s.call_tool("predict", {"run_id": ids["forecast"], "top": 3})
+            assert "as_of" in str(scored.content)
 
     asyncio.run(go())
 
