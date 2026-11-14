@@ -4,6 +4,10 @@ Turn a question about your data into a trained, tested model, then score with
 it. Predictabl reads your tables, plans the features in SQL you can review,
 checks for leakage, trains and tests the model, and serves predictions.
 
+> **Status: alpha (0.1).** Building models from code needs a *Build and
+> score* token, which the hosted app starts offering with its next release.
+> Scoring tokens work today.
+
 ```bash
 pip install predictabl
 ```

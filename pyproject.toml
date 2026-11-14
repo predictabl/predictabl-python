@@ -29,7 +29,7 @@ mcp = ["mcp>=1.2"]
 
 [project.urls]
 Homepage = "https://predictabl.tech"
-Documentation = "https://predictabl.tech/docs"
+Documentation = "https://github.com/predictabl/predictabl-python#readme"
 Source = "https://github.com/predictabl/predictabl-python"
 Issues = "https://github.com/predictabl/predictabl-python/issues"
 
