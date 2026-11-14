@@ -1,0 +1,125 @@
+# Predictabl for Python
+
+Turn a question about your data into a trained, tested model, then score with
+it. Predictabl reads your tables, plans the features in SQL you can review,
+checks for leakage, trains and tests the model, and serves predictions.
+
+```bash
+pip install predictabl
+```
+
+```python
+import predictabl as pb
+
+pb.login("pk_...")          # or set PREDICTABL_API_KEY
+
+data  = pb.upload("orders.csv")
+model = data.predict("Will an order arrive late?")
+```
+
+```
+✓ Uploading      orders.csv · 18.2 MB
+✓ Reading data   1 table
+✓ Understanding  Predict whether an order arrives after its promised date
+✓ Planning       31 features · 2 excluded
+✓ Building data
+✓ Training       lightgbm: kept 840 trees
+✓ Final model    auc 0.8712
+```
+
+```python
+model.report()                       # what it predicts, tested score, top features
+model.predict(rows=new_orders)       # score your own records (DataFrame or dicts)
+model.url                            # the same model in the web app
+```
+
+Everything you build from code also appears in the web app, labelled with the
+token that created it.
+
+## Get an API key
+
+In the web app: **Settings → API access & usage → New token**.
+
+- **Build and score** can upload data, plan and train models, and score them.
+- **Score models only** can score your trained models and nothing else.
+
+A token only ever reaches its owner's data and models. It cannot create other
+tokens. Revoking it stops it immediately.
+
+## Review the plan before training
+
+`data.predict(question)` goes straight from question to model. To look first:
+
+```python
+plan = data.plan("Which customers will stop buying in the next 30 days?")
+print(plan)                     # target, features, and what was excluded and why
+plan = plan.refine("Don't use the support_tier column")
+model = plan.train()            # or plan.train(preset="fast_preview") for a 15-second check
+```
+
+## Scoring
+
+How a model picks what to score depends on its kind (`model.kind`):
+
+| kind | what `model.predict()` does | typical model |
+|---|---|---|
+| `flat` | needs `rows=`: one record in, one prediction out | survey, sensor reading, form |
+| `event` | scores rows dated **today** in the data it trained on; pick a window with `since=`/`until=` or `since_days=` | orders, sign-ups, bookings |
+| `forecast` | projects from the latest data, or `as_of="2026-10-01"` | sales per store, demand per item |
+
+```python
+preds = model.predict(rows=df)                     # your records
+preds = model.predict(since_days=7)                # event model: last week's rows
+preds = model.predict(ids=["store_12"], limit=48)  # one entity
+preds = model.predict(filters=[{"column": "city", "op": "eq", "value": "Milano"}],
+                      include=["city"])
+
+preds.meaning    # e.g. "probability that customer churned"
+preds.as_of      # forecasts: the date they are made from
+preds.note       # e.g. why nothing matched, and the newest date in the data
+preds.to_pandas()
+```
+
+A record you score can still contain its outcome column (e.g. a row copied from
+the training file): it never reaches the model, and comes back as `actual` so
+the call doubles as a check.
+
+## Plans and limits
+
+On Predictabl's AI key a free account has a fixed number of model builds (one
+build = one question taken to a model; refining and retraining it is included).
+With your own OpenAI or Anthropic key (Settings → AI provider) builds are not
+limited. `pb.account()` shows what is left; running out raises
+`predictabl.LimitReached` with what to do next.
+
+## Use it from an AI agent (MCP)
+
+```bash
+claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- uvx "predictabl[mcp]" mcp
+```
+
+Then ask: *"Which of my customers are most likely to churn this month, and how
+good is that model?"* The tools list your models, show how good they are, and
+score them. They never upload or train.
+
+## Configuration
+
+| | |
+|---|---|
+| `PREDICTABL_API_KEY` | your token (`pk_...`) |
+| `PREDICTABL_BASE_URL` | default `https://app.predictabl.tech/pub/v1`; a local instance is `http://localhost:8000/api/v1` |
+
+For several accounts or instances, use clients directly:
+`pb.Client(api_key=..., base_url=...)` has the same methods.
+
+## Errors
+
+All errors derive from `predictabl.PredictablError` and carry the server's
+`code` and a message that says what to do: `AuthenticationError` (bad or
+revoked key), `PermissionDenied` (the key's scope does not allow it),
+`NotFound`, `LimitReached`, `InvalidRequest`, `BuildFailed` (with the server's
+recovery `suggestions`).
+
+## License
+
+MIT
