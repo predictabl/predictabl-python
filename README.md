@@ -4,6 +4,10 @@ Turn a question about your data into a trained, tested model, then score with
 it. Predictabl reads your tables, plans the features in SQL you can review,
 checks for leakage, trains and tests the model, and serves predictions.
 
+**Documentation: [predictabl.tech/docs](https://predictabl.tech/docs/)** · for AI
+agents, the whole documentation as one Markdown file:
+[predictabl.tech/docs/llms-full.txt](https://predictabl.tech/docs/llms-full.txt)
+
 > **Status: alpha (0.1).** Building models from code needs a *Build and
 > score* token, which the hosted app starts offering with its next release.
 > Scoring tokens work today.
@@ -99,7 +103,7 @@ limited. `pb.account()` shows what is left; running out raises
 ## Use it from an AI agent (MCP)
 
 ```bash
-claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- uvx "predictabl[mcp]" mcp
+claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- uvx --from "predictabl[mcp]" predictabl mcp
 ```
 
 Then ask: *"Which of my customers are most likely to churn this month, and how

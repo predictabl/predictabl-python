@@ -65,6 +65,7 @@ class Client:
         )
 
     def close(self) -> None:
+        """Close the HTTP connection. `with pb.Client() as c:` does it for you."""
         self._t.close()
 
     def __enter__(self) -> Client:
@@ -85,9 +86,11 @@ class Client:
     # ------------------------------------------------------------------ data
 
     def datasets(self) -> list[Data]:
+        """Every dataset on this account: uploads and connected databases."""
         return [Data._from(self, row) for row in self._t.get("/connections") or []]
 
     def data(self, data_id: str) -> Data:
+        """One dataset by id (from `datasets()` or the web app)."""
         for row in self._t.get("/connections") or []:
             if row["id"] == data_id:
                 return Data._from(self, row)
@@ -146,10 +149,12 @@ class Client:
     # ---------------------------------------------------------------- models
 
     def models(self, limit: int = 50) -> list[Model]:
+        """Your models, newest first, trained or not (check `model.ready`)."""
         rows = self._t.get("/runs", limit=limit) or []
         return [Model._from(self, row) for row in rows[:limit]]
 
     def model(self, model_id: str) -> Model:
+        """One model by id (from `models()` or the web app address)."""
         return Model._from(self, self._t.get(f"/runs/{model_id}"))
 
     # --------------------------------------------------------------- helpers
@@ -204,6 +209,7 @@ class Data:
         )
 
     def refresh(self) -> Data:
+        """Reload status and table count from the server."""
         fresh = self._client.data(self.id)
         self.status, self.table_count, self.error = (
             fresh.status,
@@ -269,6 +275,8 @@ class Data:
         return plan._train(preset, engine, progress, timeout)
 
     def delete(self) -> None:
+        """Delete this dataset and its uploaded files. Models trained on it can
+        no longer read it, so delete only data you no longer score from."""
         self._client._t.delete(f"/connections/{self.id}")
 
     # ------------------------------------------------------------- internals
@@ -342,6 +350,7 @@ class Plan:
         return list(self.spec.get("leakage_exclusions") or [])
 
     def summary(self) -> str:
+        """The plan in a few readable lines; also what `print(plan)` shows."""
         lines = [f"Predicting: {self.target}", f"Task: {self.task}"]
         lines.append(f"Features ({len(self.features)}): " + ", ".join(self.features[:12]))
         if len(self.features) > 12:
@@ -498,6 +507,7 @@ class Model:
         return self.state == "SUCCEEDED"
 
     def refresh(self) -> Model:
+        """Reload state, kind and errors from the server."""
         fresh = self._client.model(self.id)
         self.__dict__.update({k: v for k, v in fresh.__dict__.items() if k != "_client"})
         return self
@@ -517,6 +527,7 @@ class Model:
         return self._client._t.get(f"/runs/{self.id}/events.json") or []
 
     def cancel(self) -> None:
+        """Stop training. The model ends CANCELLED."""
         self._client._t.post(f"/runs/{self.id}/cancel")
 
     def report(self) -> dict:

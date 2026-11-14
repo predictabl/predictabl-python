@@ -1,7 +1,8 @@
 """Predictabl as an MCP server, so an AI agent (Claude Code, Claude Desktop, any
 MCP client) can discover your models and score with them.
 
-    claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- uvx "predictabl[mcp]" mcp
+    claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- \
+        uvx --from "predictabl[mcp]" predictabl mcp
 
 It is a thin layer over the same client as the Python API: every tool is one
 or two API calls, so what an agent sees is exactly what your code would get,
