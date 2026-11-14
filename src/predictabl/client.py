@@ -727,14 +727,47 @@ class Predictions(list):
         return pd.DataFrame(flat)
 
     def __repr__(self) -> str:
-        head = f"<Predictions {len(self)}"
-        if self.count and self.count > len(self):
-            head += f" of {self.count}"
-        if self.meaning:
-            head += f" · {self.meaning}"
+        # Readable at a glance in a REPL or notebook: what the number means,
+        # then the numbers. One prediction prints on one line.
+        title = _sentence(self.meaning) or "Predictions"
         if self.as_of:
-            head += f" · as of {self.as_of}"
-        return head + ">"
+            title += f" (as of {self.as_of})"
+        if not self:
+            return f"{title}: none" + (f"\n{self.note}" if self.note else "")
+        if len(self) == 1:
+            return f"{title}: {_value_of(self[0])}"
+        shown = self[:10]
+        width = max(len(str(p.get("entity_id", ""))) for p in shown)
+        lines = [title]
+        lines += [
+            f"  {str(p.get('entity_id', '')):<{width}}  {_value_of(p)}" for p in shown
+        ]
+        if len(self) > len(shown):
+            lines.append(f"  … and {len(self) - len(shown):,} more")
+        if self.count > len(self):
+            lines.append(
+                f"  ({len(self):,} of {self.count:,} returned; pass limit= for more)"
+            )
+        return "\n".join(lines)
+
+    __str__ = __repr__
+
+
+def _sentence(text: str | None) -> str:
+    return (text[0].upper() + text[1:]) if text else ""
+
+
+def _value_of(p: Mapping) -> str:
+    """One prediction as text: the class (and its probability) for a
+    classifier that names one, otherwise the number, rounded for reading."""
+    v = p.get("prediction")
+    num = (
+        f"{v:.2f}"
+        if isinstance(v, float) and abs(v) < 1000
+        else (f"{v:,.0f}" if isinstance(v, float) else str(v))
+    )
+    cls = p.get("predicted_class")
+    return f"{cls} ({num})" if cls is not None else num
 
 
 # ============================================================================

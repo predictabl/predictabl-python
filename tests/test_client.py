@@ -346,3 +346,38 @@ def _tmp_csv():
     p = Path(tempfile.mkdtemp()) / "orders.csv"
     p.write_text("id,amount,late\n1,10,0\n2,20,1\n")
     return p
+
+
+def test_predictions_print_readably():
+    from predictabl.client import Predictions
+
+    one = Predictions._from(
+        {
+            "meaning": "probability that customer churned",
+            "predictions": [{"entity_id": "0", "prediction": 0.8213}],
+        }
+    )
+    assert repr(one) == "Probability that customer churned: 0.82"
+    many = Predictions._from(
+        {
+            "meaning": "probability that customer churned",
+            "count": 500,
+            "predictions": [
+                {"entity_id": f"C-{i}", "prediction": 0.5} for i in range(12)
+            ],
+        }
+    )
+    text = str(many)
+    assert text.splitlines()[0] == "Probability that customer churned"
+    assert "  C-0  0.50" in text and "C-10" not in text
+    assert "… and 2 more" in text and "12 of 500 returned" in text
+    cls = Predictions._from(
+        {
+            "meaning": "probability of the predicted class (tier)",
+            "predictions": [
+                {"entity_id": "a", "prediction": 0.7, "predicted_class": "gold"}
+            ],
+        }
+    )
+    assert str(cls).endswith(": gold (0.70)")
+    assert list(one) == [{"entity_id": "0", "prediction": 0.8213}]  # still a plain list

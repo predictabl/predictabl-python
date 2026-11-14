@@ -8,9 +8,7 @@ checks for leakage, trains and tests the model, and serves predictions.
 agents, the whole documentation as one Markdown file:
 [predictabl.tech/docs/llms-full.txt](https://predictabl.tech/docs/llms-full.txt)
 
-> **Status: alpha (0.1).** Building models from code needs a *Build and
-> score* token, which the hosted app starts offering with its next release.
-> Scoring tokens work today.
+> **Status: alpha (0.1).** The API may still change between minor versions.
 
 ```bash
 pip install predictabl
@@ -21,14 +19,14 @@ import predictabl as pb
 
 pb.login("pk_...")          # or set PREDICTABL_API_KEY
 
-data  = pb.upload("orders.csv")
-model = data.predict("Will an order arrive late?")
+data = pb.upload("customers.csv")
+churn_model = data.predict("Which customers will churn?")
 ```
 
 ```
-✓ Uploading      orders.csv · 18.2 MB
+✓ Uploading      customers.csv · 18.2 MB
 ✓ Reading data   1 table
-✓ Understanding  Predict whether an order arrives after its promised date
+✓ Understanding  Predict which customers will churn
 ✓ Planning       31 features · 2 excluded
 ✓ Building data
 ✓ Training       lightgbm: kept 840 trees
@@ -36,9 +34,16 @@ model = data.predict("Will an order arrive late?")
 ```
 
 ```python
-model.report()                       # what it predicts, tested score, top features
-model.predict(rows=new_orders)       # score your own records (DataFrame or dicts)
-model.url                            # the same model in the web app
+churn_model.predict(customer)        # one customer (a dict), a list, or a DataFrame
+```
+
+```text
+Probability that customer churned: 0.82
+```
+
+```python
+churn_model.report()                 # what it predicts, tested score, top features
+churn_model.url                      # the same model in the web app
 ```
 
 Everything you build from code also appears in the web app, labelled with the

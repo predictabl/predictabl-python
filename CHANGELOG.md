@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+- Predictions print readably: what the number means, then the numbers.
+  One prediction prints on one line, e.g.
+  `Probability that customer churned: 0.82`.
+- README: churn example with its output; token access is *Full access* or
+  *Predictions only*.
+
 ## 0.1.0
 
 First release.
