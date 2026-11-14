@@ -46,10 +46,12 @@ token that created it.
 
 ## Get an API key
 
-In the web app: **Settings → API access & usage → New token**.
+In the web app: **Settings → API & MCP → Create token**.
 
-- **Build and score** can upload data, plan and train models, and score them.
-- **Score models only** can score your trained models and nothing else.
+- By default a token has **full access**: it can do from code what you do in the
+  web app (upload, ask, plan, train and get predictions).
+- Tick **Predictions only** for code that only needs answers from models you
+  have trained. If it leaks, nobody can upload, train or use up your builds.
 
 A token only ever reaches its owner's data and models. It cannot create other
 tokens. Revoking it stops it immediately.
