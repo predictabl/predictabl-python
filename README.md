@@ -1,4 +1,4 @@
-# Predictabl for Python
+# Predictabl Python API library
 
 Turn a question about your data into a trained, tested model, then score with
 it. Predictabl reads your tables, plans the features in SQL you can review,
