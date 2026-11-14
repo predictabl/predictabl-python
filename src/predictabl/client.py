@@ -10,6 +10,7 @@ from __future__ import annotations
 import io
 import os
 import time
+import warnings
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -96,7 +97,7 @@ class Client:
                 return Data._from(self, row)
         raise errors.NotFound(f"No dataset {data_id!r} on this account.")
 
-    def upload(
+    def connect(
         self,
         source: str | Path | Iterable[str | Path] | Any,
         name: str | None = None,
@@ -106,12 +107,38 @@ class Client:
         on_progress: Callback | None = None,
         timeout: float | None = 1800,
     ) -> Data:
-        """Upload CSV, Excel or Parquet files (or a pandas DataFrame) as a new
-        dataset. Several files become several tables Predictabl can join.
+        """Connect data to Predictabl: a database or files.
+
+        * A Postgres address (``"postgresql://user:password@host:5432/db"``):
+          Predictabl reads the database where it is, read-only. Use a
+          read-only user, and make sure the database accepts connections from
+          Predictabl's server.
+        * CSV, Excel or Parquet files, a list of them, or a pandas DataFrame:
+          the files are uploaded to Predictabl. Several files become several
+          tables Predictabl can join.
 
         With `wait` (default) returns once Predictabl has read the tables."""
-        files, label = _files_of(source)
         progress = Progress(quiet=quiet, on_update=on_progress)
+        if isinstance(source, str) and _is_database_url(source):
+            data = self._connect_database(source, name, progress)
+        else:
+            data = self._upload_files(source, name, progress)
+        if wait:
+            data.wait_ready(progress=progress, timeout=timeout)
+        return data
+
+    def upload(self, source, name: str | None = None, **kw) -> Data:
+        """Deprecated: renamed to `connect()`, which also takes databases."""
+        warnings.warn(
+            "predictabl: upload() is now connect(); upload() will be removed in a "
+            "future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.connect(source, name, **kw)
+
+    def _upload_files(self, source: Any, name: str | None, progress: Progress) -> Data:
+        files, label = _files_of(source)
         size = sum(len(content) for _, content, _ in files)
         progress.running("Uploading", f"{label} · {_human_bytes(size)}")
         try:
@@ -126,10 +153,26 @@ class Client:
             progress.failed("Uploading")
             raise
         progress.done("Uploading", f"{label} · {_human_bytes(size)}")
-        data = Data._from(self, row)
-        if wait:
-            data.wait_ready(progress=progress, timeout=timeout)
-        return data
+        return Data._from(self, row)
+
+    def _connect_database(self, url: str, name: str | None, progress: Progress) -> Data:
+        label = _safe_db_label(url)  # never shows the password
+        progress.running("Connecting", label)
+        try:
+            row = self._t.post(
+                "/connections",
+                json={
+                    "name": name or label,
+                    "kind": "postgres",
+                    "config": {"dsn": url},
+                },
+            )
+            self._t.post(f"/connections/{row['id']}/introspect")
+        except errors.PredictablError:
+            progress.failed("Connecting", label)
+            raise
+        progress.done("Connecting", label)
+        return Data._from(self, row)
 
     def plan(self, question_id: str) -> Plan:
         """The latest plan of a question (opportunity) planned earlier, e.g.
@@ -771,6 +814,42 @@ def _value_of(p: Mapping) -> str:
 
 
 # ============================================================================
+
+
+_DB_SCHEMES = (
+    "postgres://",
+    "postgresql://",
+    "postgresql+psycopg://",
+    "postgresql+psycopg2://",
+)
+
+
+def _is_database_url(source: str) -> bool:
+    """True for a database address. Postgres is supported; other databases
+    raise a clear error instead of being read as a file name."""
+    low = source.strip().lower()
+    if low.startswith(_DB_SCHEMES):
+        return True
+    scheme = low.split("://", 1)[0] if "://" in low else ""
+    if scheme and not scheme.startswith(("http", "file")) and "/" not in scheme:
+        raise errors.InvalidRequest(
+            f"Predictabl connects to Postgres databases ({scheme}:// is not "
+            "supported yet). Export the tables to files and pass those instead."
+        )
+    return False
+
+
+def _safe_db_label(url: str) -> str:
+    """'sales on db.acme.com' from a database address, without credentials."""
+    from urllib.parse import urlsplit
+
+    try:
+        parts = urlsplit(url.strip())
+        db = parts.path.lstrip("/") or "database"
+        host = parts.hostname or "localhost"
+    except ValueError:
+        return "database"
+    return f"{db} on {host}"
 
 
 def _files_of(source: Any) -> tuple[list[tuple[str, bytes, str]], str]:

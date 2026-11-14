@@ -19,7 +19,7 @@ import predictabl as pb
 
 pb.login("pk_...")          # or set PREDICTABL_API_KEY
 
-data = pb.upload("customers.csv")
+data = pb.connect("customers.csv")      # a file, a DataFrame, or a database
 churn_model = data.predict("Which customers will churn?")
 ```
 
@@ -44,6 +44,13 @@ Probability that customer churned: 0.82
 ```python
 churn_model.report()                 # what it predicts, tested score, top features
 churn_model.url                      # the same model in the web app
+```
+
+Your data can be files, a pandas DataFrame, or a Postgres database, which
+Predictabl reads in place, read-only:
+
+```python
+data = pb.connect("postgresql://readonly:pw@db.acme.com/sales")
 ```
 
 Everything you build from code also appears in the web app, labelled with the

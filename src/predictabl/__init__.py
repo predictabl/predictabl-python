@@ -3,10 +3,9 @@
     import predictabl as pb
 
     pb.login("pk_...")                      # or set PREDICTABL_API_KEY
-    data  = pb.upload("orders.csv")
-    model = data.predict("Will an order arrive late?")
-    model.report()
-    model.predict(rows=new_orders)
+    data = pb.connect("customers.csv")      # files, a DataFrame, or a Postgres address
+    churn_model = data.predict("Which customers will churn?")
+    churn_model.predict(customer)           # Probability that customer churned: 0.82
 
 Module-level functions use one shared client, configured by `login()` or the
 PREDICTABL_API_KEY / PREDICTABL_BASE_URL environment variables. For several
@@ -34,7 +33,7 @@ __all__ = [
     "login",
     "client",
     "account",
-    "upload",
+    "connect",
     "data",
     "datasets",
     "plan",
@@ -81,8 +80,23 @@ def account() -> dict:
     return client().account()
 
 
+def connect(source, name: str | None = None, **kw) -> Data:
+    """Connect a Postgres database (by address) or upload files / a DataFrame.
+    See `Client.connect`."""
+    return client().connect(source, name, **kw)
+
+
 def upload(source, name: str | None = None, **kw) -> Data:
-    return client().upload(source, name, **kw)
+    """Deprecated: renamed to `connect()`."""
+    import warnings
+
+    warnings.warn(
+        "predictabl: upload() is now connect(); upload() will be removed in a "
+        "future version.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return client().connect(source, name, **kw)
 
 
 def data(data_id: str) -> Data:

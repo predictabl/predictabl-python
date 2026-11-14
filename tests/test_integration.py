@@ -153,7 +153,7 @@ def test_an_inference_token_scores_but_cannot_build(ids):
     with pb.Client(api_key=key, base_url=URL) as inf:
         assert len(inf.model(ids["flat"]).predict(rows=_airline_rows(2))) == 2
         with pytest.raises(errors.PermissionDenied):
-            inf.upload(_tiny_csv(), quiet=True)
+            inf.connect(_tiny_csv(), quiet=True)
         with pytest.raises(errors.PermissionDenied):
             inf.datasets()
 
@@ -182,11 +182,11 @@ def test_a_bad_key_is_an_authentication_error():
 # ------------------------------------------------------------ build path
 
 
-def test_upload_creates_a_dataset_marked_with_the_token(c):
+def test_connect_creates_a_dataset_marked_with_the_token(c):
     """Introspection needs the LLM; on a server without a key it fails, and
     the SDK must say so instead of hanging."""
     try:
-        data = c.upload(_tiny_csv(), name="sdk-integration", quiet=True, timeout=300)
+        data = c.connect(_tiny_csv(), name="sdk-integration", quiet=True, timeout=300)
         assert data.status == "ready"
     except errors.BuildFailed as exc:
         assert "Could not read this dataset" in str(exc)

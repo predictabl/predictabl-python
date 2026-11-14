@@ -29,7 +29,7 @@ class AuthenticationError(PredictablError):
 
 class PermissionDenied(PredictablError):
     """The API key is valid but its scope does not allow this (HTTP 403).
-    Scoring-only (`inference`) keys cannot upload, plan or train."""
+    Predictions only keys cannot connect data, plan or train."""
 
 
 class NotFound(PredictablError):

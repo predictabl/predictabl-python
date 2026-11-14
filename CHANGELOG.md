@@ -2,6 +2,10 @@
 
 ## 0.1.1
 
+- `connect()` replaces `upload()`: pass files or a DataFrame as before, or a
+  Postgres address (`"postgresql://user:pw@host/db"`), which Predictabl reads
+  in place, read-only. The password never appears in progress or errors.
+  `upload()` still works and warns; it will be removed in a later version.
 - Predictions print readably: what the number means, then the numbers.
   One prediction prints on one line, e.g.
   `Probability that customer churned: 0.82`.

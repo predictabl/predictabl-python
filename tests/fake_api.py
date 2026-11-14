@@ -74,6 +74,18 @@ class FakeApi:
                     "kind": "duckdb",
                 }
             )
+        if path == "/connections" and m == "POST":
+            return ok(
+                {
+                    "id": "c1",
+                    "name": body["name"],
+                    "status": "created",
+                    "kind": "postgres",
+                },
+                201,
+            )
+        if path == "/connections/c1/introspect" and m == "POST":
+            return ok({"job": "introspect", "connection_id": "c1"}, 202)
         if path == "/connections" and m == "GET":
             self._conn_polls += 1
             status = (

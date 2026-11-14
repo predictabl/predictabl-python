@@ -125,33 +125,33 @@ def test_reads_are_retried_on_a_gateway_error_but_writes_are_not(monkeypatch):
 # -------------------------------------------------------------- build flow
 
 
-def test_upload_waits_until_the_data_is_read():
+def test_connect_waits_until_the_data_is_read():
     c, api = make()
-    data = c.upload(_tmp_csv(), quiet=True)
+    data = c.connect(_tmp_csv(), quiet=True)
     assert data.status == "ready" and data.table_count == 1
     method, path, _, headers = api.calls[0]
     assert (method, path) == ("POST", "/connections/from-csv")
     assert headers["content-type"].startswith("multipart/form-data")
 
 
-def test_upload_accepts_a_dataframe():
+def test_connect_accepts_a_dataframe():
     pd = pytest.importorskip("pandas")
     c, api = make()
-    c.upload(pd.DataFrame({"a": [1, 2]}), name="frame", quiet=True)
+    c.connect(pd.DataFrame({"a": [1, 2]}), name="frame", quiet=True)
     assert api.calls[0][1] == "/connections/from-csv"
 
 
-def test_upload_of_a_missing_file_fails_before_any_request():
+def test_connect_of_a_missing_file_fails_before_any_request():
     c, api = make()
     with pytest.raises(errors.InvalidRequest):
-        c.upload("/no/such/file.csv", quiet=True)
+        c.connect("/no/such/file.csv", quiet=True)
     assert api.calls == []
 
 
 def test_question_to_model_in_one_call_with_progress():
     c, api = make()
     updates = []
-    data = c.upload(_tmp_csv(), quiet=True)
+    data = c.connect(_tmp_csv(), quiet=True)
     model = data.predict(
         "Will an order arrive late?", quiet=True, on_progress=updates.append
     )
@@ -171,7 +171,7 @@ def test_an_older_finished_job_is_not_mistaken_for_ours():
     """The first job poll returns an earlier, finished job; the client must
     keep waiting for the job its own request created."""
     c, api = make(FakeApi(older_job_done=True))
-    data = c.upload(_tmp_csv(), quiet=True)
+    data = c.connect(_tmp_csv(), quiet=True)
     plan = data.plan("late?", quiet=True)
     job_polls = [p for (m, p, _, _) in api.calls if p.endswith("/opportunities/job")]
     assert len(job_polls) >= 3
@@ -180,7 +180,7 @@ def test_an_older_finished_job_is_not_mistaken_for_ours():
 
 def test_plan_shows_target_features_and_exclusions():
     c, _ = make()
-    plan = c.upload(_tmp_csv(), quiet=True).plan("late?", quiet=True)
+    plan = c.connect(_tmp_csv(), quiet=True).plan("late?", quiet=True)
     assert plan.features == ["f1", "f3"]  # disabled features are not listed
     text = str(plan)
     assert "Order delivered after promised date" in text
@@ -189,21 +189,21 @@ def test_plan_shows_target_features_and_exclusions():
 
 def test_refine_returns_the_next_version_and_leaves_the_old_one():
     c, _ = make()
-    plan = c.upload(_tmp_csv(), quiet=True).plan("late?", quiet=True)
+    plan = c.connect(_tmp_csv(), quiet=True).plan("late?", quiet=True)
     newer = plan.refine("drop courier", quiet=True)
     assert (plan.version, newer.version) == (1, 2)
 
 
 def test_a_failed_plan_raises_with_the_servers_reason():
     c, _ = make(FakeApi(fail_plan=True, polls_until_spec=1))
-    data = c.upload(_tmp_csv(), quiet=True)
+    data = c.connect(_tmp_csv(), quiet=True)
     with pytest.raises(errors.BuildFailed, match="bad SQL"):
         data.plan("late?", quiet=True)
 
 
 def test_a_failed_run_raises_with_code_and_suggestions():
     c, _ = make(FakeApi(fail_run=True))
-    data = c.upload(_tmp_csv(), quiet=True)
+    data = c.connect(_tmp_csv(), quiet=True)
     with pytest.raises(errors.BuildFailed) as exc:
         data.predict("late?", quiet=True)
     assert exc.value.code == "BUILD_LIMIT_REACHED"
@@ -381,3 +381,36 @@ def test_predictions_print_readably():
     )
     assert str(cls).endswith(": gold (0.70)")
     assert list(one) == [{"entity_id": "0", "prediction": 0.8213}]  # still a plain list
+
+
+def test_connect_a_postgres_database_reads_it_in_place(capsys):
+    c, api = make()
+    url = "postgresql://ro_user:s3cret@db.acme.com:5432/sales"
+    updates = []
+    data = c.connect(url, on_progress=updates.append)
+    assert data.status == "ready"
+    posts = [(p, b) for m, p, b, _ in api.calls if m == "POST"]
+    assert posts[0] == (
+        "/connections",
+        {"name": "sales on db.acme.com", "kind": "postgres", "config": {"dsn": url}},
+    )
+    assert posts[1][0] == "/connections/c1/introspect"
+    shown = " ".join(f"{u.step} {u.detail}" for u in updates) + capsys.readouterr().err
+    assert "s3cret" not in shown and "ro_user" not in shown
+    assert "sales on db.acme.com" in shown
+    assert not any(p == "/connections/from-csv" for _, p, _, _ in api.calls)
+
+
+def test_connect_refuses_unsupported_databases_clearly():
+    c, api = make()
+    with pytest.raises(pb.InvalidRequest, match="Postgres"):
+        c.connect("mysql://u:p@host/db", quiet=True)
+    assert api.calls == []
+
+
+def test_upload_still_works_but_warns():
+    c, api = make()
+    with pytest.warns(DeprecationWarning, match="connect"):
+        data = c.upload(_tmp_csv(), quiet=True)
+    assert data.status == "ready"
+    assert "upload" not in pb.__all__ and "connect" in pb.__all__
