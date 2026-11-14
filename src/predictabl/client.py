@@ -81,7 +81,7 @@ class Client:
     # --------------------------------------------------------------- account
 
     def account(self) -> dict:
-        """Who you are, your plan, and builds used/left."""
+        """Who you are, your plan, your credits and what is left of your allowances."""
         return self._t.get("/account")
 
     # ------------------------------------------------------------------ data

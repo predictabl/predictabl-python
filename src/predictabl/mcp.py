@@ -250,7 +250,7 @@ def build_server(client: Client):
 
     @mcp.tool()
     def account() -> dict:
-        """The account behind this key: email, plan, builds used and left."""
+        """The account behind this key: email, plan, credits and allowances left."""
         return client.account()
 
     return mcp

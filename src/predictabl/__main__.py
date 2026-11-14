@@ -22,7 +22,7 @@ def main(argv: list[str] | None = None) -> int:
         "--base-url", help="default: PREDICTABL_BASE_URL or the hosted app"
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("whoami", help="your account, plan and builds left")
+    sub.add_parser("whoami", help="your account, plan and what is left")
     sub.add_parser("models", help="your models")
     sub.add_parser(
         "mcp", help="run the MCP server over stdio (for Claude and other agents)"
