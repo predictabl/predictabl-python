@@ -50,8 +50,8 @@ In the web app: **Settings → API & MCP → Create token**.
 
 - By default a token has **full access**: it can do from code what you do in the
   web app (upload, ask, plan, train and get predictions).
-- Tick **Predictions only** for code that only needs answers from models you
-  have trained. If it leaks, nobody can upload, train or use up your builds.
+- Tick **Predictions only** for a read-only token: it can get predictions from
+  your trained models and change nothing.
 
 A token only ever reaches its owner's data and models. It cannot create other
 tokens. Revoking it stops it immediately.
