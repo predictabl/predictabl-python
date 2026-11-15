@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+- Fix: `model.report()` (and so every `train()` or `predict()` that waits for
+  the result) crashed with `TypeError: unhashable type: 'dict'` against the
+  current server, which sends the headline metric as an object. It now reads
+  it, and the report includes `test_score`.
+- Docstrings speak of credits and allowances.
+
 ## 0.1.1
 
 - `connect()` replaces `upload()`: pass files or a DataFrame as before, or a
