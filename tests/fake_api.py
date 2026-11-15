@@ -28,6 +28,9 @@ def err(code, message, status):
 class FakeApi:
     polls_until_ready: int = 2
     polls_until_spec: int = 2
+    # What /results says the main metric is: None (older servers), a name, or
+    # the object current servers send ({name, value, ...}).
+    primary_metric: object = None
     run_states: list = field(
         default_factory=lambda: [
             "QUEUED",
@@ -162,6 +165,11 @@ class FakeApi:
                         "n_train": 900,
                         "n_test": 100,
                         "feature_importance": [{"feature": "days_late_before"}],
+                        **(
+                            {"primary_metric": self.primary_metric}
+                            if self.primary_metric is not None
+                            else {}
+                        ),
                     }
                 )
             if sub == "/predict-records":

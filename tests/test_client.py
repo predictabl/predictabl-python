@@ -218,6 +218,14 @@ def test_report_summarises_the_tested_model():
     assert rep["url"] == "http://test/runs/r1"
 
 
+def test_report_reads_the_metric_object_current_servers_send():
+    # 0.1.1 crashed here ("unhashable type: 'dict'"), so every train() and
+    # predict() that waited for the model failed at the very end.
+    c, _ = make(FakeApi(primary_metric={"name": "auc", "value": 0.86}))
+    rep = c.model("r1").report()
+    assert (rep["metric"], rep["score"], rep["test_score"]) == ("auc", 0.8712, 0.86)
+
+
 # ---------------------------------------------------------------- scoring
 
 

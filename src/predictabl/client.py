@@ -578,7 +578,15 @@ class Model:
         res = self._client._t.get(f"/runs/{self.id}/results") or {}
         winner = res.get("winner")
         scores = (res.get("engines") or {}).get(winner) or {}
-        metric = res.get("primary_metric") or _default_metric(res.get("task"))
+        # primary_metric is an object ({name, value, direction, ...}) on current
+        # servers and a bare name on older ones; the SDK crashed on the object.
+        pm = res.get("primary_metric")
+        tested = None
+        if isinstance(pm, dict):
+            metric = pm.get("name") or _default_metric(res.get("task"))
+            tested = pm.get("value")
+        else:
+            metric = pm or _default_metric(res.get("task"))
         imp = res.get("feature_importance") or []
         if isinstance(imp, dict):
             imp = imp.get(winner) or next(iter(imp.values()), [])
@@ -598,6 +606,9 @@ class Model:
             "metric": metric,
             "score": scores.get(metric) if metric else None,
             "score_std": (scores.get("metric_std") or {}).get(metric) if metric else None,
+            # The tested model's own score on the held-out snapshots; "score"
+            # is the cross-validation average when the run cross-validated.
+            "test_score": tested,
             "rows_trained": res.get("n_train"),
             "rows_tested": res.get("n_test"),
             "top_features": [t for t in top if t],
