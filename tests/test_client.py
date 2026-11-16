@@ -106,6 +106,22 @@ def test_refusals_become_typed_errors_with_the_servers_message(response, cls, co
     assert isinstance(exc.value, errors.PredictablError)
 
 
+def test_a_401_says_what_to_do_with_or_without_a_key():
+    refused = httpx.Response(401, json={"detail": "unauthenticated"})
+    transport, _ = responder(refused)
+    t = Transport(None, BASE, http=httpx.Client(transport=transport))
+    with pytest.raises(errors.AuthenticationError) as exc:
+        t.get("/account")
+    assert "No API key" in str(exc.value) and "PREDICTABL_API_KEY" in str(exc.value)
+
+    transport, _ = responder(refused)
+    t = Transport("pk_wrong", BASE, http=httpx.Client(transport=transport))
+    with pytest.raises(errors.AuthenticationError) as exc:
+        t.get("/account")
+    assert "refused" in str(exc.value) and "revoked" in str(exc.value)
+    assert exc.value.status == 401
+
+
 def test_reads_are_retried_on_a_gateway_error_but_writes_are_not(monkeypatch):
     import predictabl._http as h
 

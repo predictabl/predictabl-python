@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- A refused API key now says what to do: with no key set, how to create one and
+  set `PREDICTABL_API_KEY`; with a wrong or revoked key, how to check it. (It
+  used to say only `unauthenticated`.)
+- README: plans and limits described in credits, as on the server.
+
 ## 0.1.2
 
 - Fix: `model.report()` (and so every `train()` or `predict()` that waits for

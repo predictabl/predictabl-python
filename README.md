@@ -108,11 +108,13 @@ the call doubles as a check.
 
 ## Plans and limits
 
-On Predictabl's AI key a free account has a fixed number of model builds (one
-build = one question taken to a model; refining and retraining it is included).
-With your own OpenAI or Anthropic key (Settings → AI provider) builds are not
-limited. `pb.account()` shows what is left; running out raises
-`predictabl.LimitReached` with what to do next.
+On Predictabl's AI key, building uses credits: turning a question into a plan,
+and changing a plan. Training, retraining and predictions never use credits, and
+a plan or model that fails to build is refunded. With your own OpenAI or
+Anthropic key (Settings → AI provider) building uses no credits. Your plan also
+sets how many models you keep and predictions a month. `pb.account()` shows
+what is left; running out raises `predictabl.LimitReached` with what to do next.
+Details: [Errors and limits](https://predictabl.tech/docs/errors-and-limits/).
 
 ## Use it from an AI agent (MCP)
 

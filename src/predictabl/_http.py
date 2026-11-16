@@ -87,7 +87,14 @@ class Transport:
             if resp.status_code in _RETRY_STATUS and i + 1 < attempts:
                 time.sleep(min(2**i, 8))
                 continue
-            return _unwrap(resp)
+            try:
+                return _unwrap(resp)
+            except errors.AuthenticationError as exc:
+                raise errors.AuthenticationError(
+                    _auth_hint(bool(self.api_key), exc.message),
+                    code=exc.code,
+                    status=exc.status,
+                ) from None
         raise errors.ApiError(str(last))  # pragma: no cover - loop always returns
 
 
@@ -108,8 +115,6 @@ def _unwrap(resp: httpx.Response) -> Any:
     }.get(status)
     if cls is None:
         cls = errors.InvalidRequest if 400 <= status < 500 else errors.ApiError
-    if status == 401 and not message:
-        message = "Missing or invalid API key. Set PREDICTABL_API_KEY or call login()."
     raise cls(message or f"HTTP {status}", code=code, status=status)
 
 
@@ -127,3 +132,19 @@ def _error_of(body: Any, resp: httpx.Response) -> tuple[str | None, str]:
             return None, str(detail)
     text = (resp.text or "").strip()
     return None, text[:500]
+
+
+def _auth_hint(key_sent: bool, server_said: str) -> str:
+    """A 401 always says what to do: the server's own words are terse."""
+    said = f" (server: {server_said})" if server_said else ""
+    if not key_sent:
+        return (
+            "No API key. Create one in the web app under Settings → API & MCP, "
+            "then `export PREDICTABL_API_KEY=pk_...` or call "
+            'pb.login("pk_...").' + said
+        )
+    return (
+        "The API key was refused" + said + ". Check it was copied in full "
+        "(it starts with pk_) and has not been revoked under "
+        "Settings → API & MCP."
+    )
