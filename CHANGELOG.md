@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4
+
+- Package metadata only, no code change: clearer PyPI description, more
+  keywords and classifiers, the author named, the Documentation link goes to
+  predictabl.tech/docs and a Changelog link is added.
+- README: one opening line on what Predictabl is; `to_pandas()` notes that it
+  needs `pip install "predictabl[pandas]"`.
+
 ## 0.1.3
 
 - A refused API key now says what to do: with no key set, how to create one and

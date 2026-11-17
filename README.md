@@ -1,8 +1,12 @@
 # Predictabl Python API library
 
+[Predictabl](https://predictabl.tech) is your agentic data scientist for tabular
+data: it reads your tables, plans the features, trains and tests the model, and
+serves the predictions.
+
 Turn a question about your data into a trained, tested model, then score with
-it. Predictabl reads your tables, plans the features in SQL you can review,
-checks for leakage, trains and tests the model, and serves predictions.
+it. The features are planned in SQL you can review, and checked for leakage
+before training.
 
 **Documentation: [predictabl.tech/docs](https://predictabl.tech/docs/)** · for AI
 agents, the whole documentation as one Markdown file:
@@ -99,7 +103,7 @@ preds = model.predict(filters=[{"column": "city", "op": "eq", "value": "Milano"}
 preds.meaning    # e.g. "probability that customer churned"
 preds.as_of      # forecasts: the date they are made from
 preds.note       # e.g. why nothing matched, and the newest date in the data
-preds.to_pandas()
+preds.to_pandas()     # needs: pip install "predictabl[pandas]"
 ```
 
 A record you score can still contain its outcome column (e.g. a row copied from

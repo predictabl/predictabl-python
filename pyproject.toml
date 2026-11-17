@@ -5,21 +5,33 @@ build-backend = "hatchling.build"
 [project]
 name = "predictabl"
 dynamic = ["version"]
-description = "Predictabl from Python: turn a question about your data into a trained model, then score it."
+description = "Predictive models on your own tables: forecasting, churn and classification from one plain-language question — the Predictabl Python client."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-authors = [{ name = "Predictabl" }]
-keywords = ["machine learning", "prediction", "forecasting", "automl", "tabular", "mcp"]
+authors = [{ name = "Mattia Dimauro", email = "mattia@predictabl.tech" }]
+keywords = [
+  "machine learning", "prediction", "forecasting", "automl", "tabular", "mcp",
+  "churn", "time series", "predictive analytics", "classification", "api client",
+  "sdk", "feature engineering", "agentic data science",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
   "Intended Audience :: Science/Research",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = ["httpx>=0.27"]
 
@@ -29,7 +41,8 @@ mcp = ["mcp>=1.2"]
 
 [project.urls]
 Homepage = "https://predictabl.tech"
-Documentation = "https://github.com/predictabl/predictabl-python#readme"
+Documentation = "https://predictabl.tech/docs/"
+Changelog = "https://github.com/predictabl/predictabl-python/blob/main/CHANGELOG.md"
 Source = "https://github.com/predictabl/predictabl-python"
 Issues = "https://github.com/predictabl/predictabl-python/issues"
 
