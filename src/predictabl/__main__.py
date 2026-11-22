@@ -14,10 +14,8 @@ MCP_MOVED = """\
 Predictabl's MCP server is hosted: https://app.predictabl.tech/mcp
 (this local command was removed in predictabl 0.2.0).
 
-  Claude, ChatGPT:  add the address as a connector and sign in
-  Claude Code:      claude mcp add --transport http predictabl https://app.predictabl.tech/mcp
-  Cursor, VS Code:  {"url": "https://app.predictabl.tech/mcp",
-                     "headers": {"Authorization": "Bearer pk_..."}}
+  Claude Code:  claude mcp add --transport http predictabl https://app.predictabl.tech/mcp
+  Any other app (ChatGPT, Claude, ...): add the address and sign in.
 
 Setup for each app: https://predictabl.tech/docs/agents/"""
 

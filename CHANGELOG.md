@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- `predictabl mcp` message: any MCP app connects by adding the address and
+  signing in (the token-header example is gone).
+
 ## 0.2.0
 
 - Removed the local MCP server (`predictabl mcp`). Predictabl's MCP server is
