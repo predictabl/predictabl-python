@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5
+
+- README and the local MCP server's instructions point to the hosted MCP
+  server at https://app.predictabl.tech/mcp: connect it from ChatGPT, Claude or
+  any MCP client to upload data, ask a question, train and get predictions
+  from the chat. The local server (`predictabl mcp`) still reads and predicts
+  only; no other code change.
+
 ## 0.1.4
 
 - Package metadata only, no code change: clearer PyPI description, more

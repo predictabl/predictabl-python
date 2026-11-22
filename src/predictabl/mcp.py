@@ -1,13 +1,15 @@
 """Predictabl as an MCP server, so an AI agent (Claude Code, Claude Desktop, any
-MCP client) can discover your models and score with them.
+MCP client) can discover your models and get predictions from them.
 
     claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- \
         uvx --from "predictabl[mcp]" predictabl mcp
 
 It is a thin layer over the same client as the Python API: every tool is one
 or two API calls, so what an agent sees is exactly what your code would get,
-and a token reaches only its owner's models. The tools read and score; they
-never upload or train.
+and a token reaches only its owner's models. This local server reads and
+predicts; it does not upload or train. The hosted server at
+https://app.predictabl.tech/mcp does all of it (upload, ask, train, predict)
+from ChatGPT, Claude or any MCP client, with no install.
 """
 
 from __future__ import annotations
@@ -21,7 +23,11 @@ INSTRUCTIONS = (
     "Predictabl hosts this user's trained prediction models. Start with "
     "list_models, check get_model before relying on a model, then use predict "
     "for anything about what happens next. Quote `meaning` with numbers so the "
-    "user knows what a score is, and state `as_of` for forecasts."
+    "user knows what a score is, and state `as_of` for forecasts. This "
+    "local server does not upload data or train models: for that, the user "
+    "can connect Predictabl's hosted MCP server at "
+    "https://app.predictabl.tech/mcp, which uploads, trains and predicts "
+    "from the chat."
 )
 
 

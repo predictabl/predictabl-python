@@ -122,13 +122,20 @@ Details: [Errors and limits](https://predictabl.tech/docs/errors-and-limits/).
 
 ## Use it from an AI agent (MCP)
 
+**From ChatGPT or Claude, no install:** add `https://app.predictabl.tech/mcp` as
+a connector and sign in. Then upload your data, ask your question, and get
+your predictions, all in the chat. Setup for each app:
+[AI agents and MCP](https://predictabl.tech/docs/agents/).
+
+**On your machine:** this library also includes a local MCP server that lists
+your models, shows how good they are, and gets predictions from them, using a token:
+
 ```bash
-claude mcp add predictabl --env PREDICTABL_API_KEY=pk_... -- uvx --from "predictabl[mcp]" predictabl mcp
+claude mcp add predictabl-local --env PREDICTABL_API_KEY=pk_... -- uvx --from "predictabl[mcp]" predictabl mcp
 ```
 
 Then ask: *"Which of my customers are most likely to churn this month, and how
-good is that model?"* The tools list your models, show how good they are, and
-score them. They never upload or train.
+good is that model?"* To upload or train from a chat, use the hosted server.
 
 ## Configuration
 
