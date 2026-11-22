@@ -37,7 +37,9 @@ dependencies = ["httpx>=0.27"]
 
 [project.optional-dependencies]
 pandas = ["pandas>=2.0"]
-mcp = ["mcp>=1.2"]
+# The local MCP server was removed in 0.2.0 (use https://app.predictabl.tech/mcp).
+# Empty extra kept so `pip install "predictabl[mcp]"` still resolves.
+mcp = []
 
 [project.urls]
 Homepage = "https://predictabl.tech"
@@ -56,7 +58,7 @@ path = "src/predictabl/_version.py"
 packages = ["src/predictabl"]
 
 [dependency-groups]
-dev = ["pytest>=8", "pandas>=2.0", "mcp>=1.2", "ruff>=0.7"]
+dev = ["pytest>=8", "pandas>=2.0", "ruff>=0.7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

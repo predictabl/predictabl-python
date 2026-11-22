@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Removed the local MCP server (`predictabl mcp`). Predictabl's MCP server is
+  hosted at https://app.predictabl.tech/mcp and does everything from the chat:
+  upload data, ask a question, train, get predictions. Connect it from
+  ChatGPT, Claude, Claude Code, Cursor or any MCP client
+  (https://predictabl.tech/docs/agents/). `predictabl mcp` now prints how.
+  The `mcp` extra is empty and kept only so old install commands still work.
+
 ## 0.1.5
 
 - README and the local MCP server's instructions point to the hosted MCP

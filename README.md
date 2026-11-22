@@ -21,9 +21,9 @@ pip install predictabl
 ```python
 import predictabl as pb
 
-pb.login("pk_...")          # or set PREDICTABL_API_KEY
+pb.login("pk_...")  # or set PREDICTABL_API_KEY
 
-data = pb.connect("customers.csv")      # a file, a DataFrame, or a database
+data = pb.connect("customers.csv")  # a file, a DataFrame, or a database
 churn_model = data.predict("Which customers will churn?")
 ```
 
@@ -38,7 +38,7 @@ churn_model = data.predict("Which customers will churn?")
 ```
 
 ```python
-churn_model.predict(customer)        # one customer (a dict), a list, or a DataFrame
+churn_model.predict(customer)  # one customer (a dict), a list, or a DataFrame
 ```
 
 ```text
@@ -46,8 +46,8 @@ Probability that customer churned: 0.82
 ```
 
 ```python
-churn_model.report()                 # what it predicts, tested score, top features
-churn_model.url                      # the same model in the web app
+churn_model.report()  # what it predicts, tested score, top features
+churn_model.url  # the same model in the web app
 ```
 
 Your data can be files, a pandas DataFrame, or a Postgres database, which
@@ -78,9 +78,9 @@ tokens. Revoking it stops it immediately.
 
 ```python
 plan = data.plan("Which customers will stop buying in the next 30 days?")
-print(plan)                     # target, features, and what was excluded and why
+print(plan)  # target, features, and what was excluded and why
 plan = plan.refine("Don't use the support_tier column")
-model = plan.train()            # or plan.train(preset="fast_preview") for a 15-second check
+model = plan.train()  # or plan.train(preset="fast_preview") for a 15-second check
 ```
 
 ## Scoring
@@ -94,16 +94,17 @@ How a model picks what to score depends on its kind (`model.kind`):
 | `forecast` | projects from the latest data, or `as_of="2026-10-01"` | sales per store, demand per item |
 
 ```python
-preds = model.predict(rows=df)                     # your records
-preds = model.predict(since_days=7)                # event model: last week's rows
+preds = model.predict(rows=df)  # your records
+preds = model.predict(since_days=7)  # event model: last week's rows
 preds = model.predict(ids=["store_12"], limit=48)  # one entity
-preds = model.predict(filters=[{"column": "city", "op": "eq", "value": "Milano"}],
-                      include=["city"])
+preds = model.predict(
+    filters=[{"column": "city", "op": "eq", "value": "Milano"}], include=["city"]
+)
 
-preds.meaning    # e.g. "probability that customer churned"
-preds.as_of      # forecasts: the date they are made from
-preds.note       # e.g. why nothing matched, and the newest date in the data
-preds.to_pandas()     # needs: pip install "predictabl[pandas]"
+preds.meaning  # e.g. "probability that customer churned"
+preds.as_of  # forecasts: the date they are made from
+preds.note  # e.g. why nothing matched, and the newest date in the data
+preds.to_pandas()  # needs: pip install "predictabl[pandas]"
 ```
 
 A record you score can still contain its outcome column (e.g. a row copied from
@@ -122,20 +123,10 @@ Details: [Errors and limits](https://predictabl.tech/docs/errors-and-limits/).
 
 ## Use it from an AI agent (MCP)
 
-**From ChatGPT or Claude, no install:** add `https://app.predictabl.tech/mcp` as
-a connector and sign in. Then upload your data, ask your question, and get
-your predictions, all in the chat. Setup for each app:
+Add `https://app.predictabl.tech/mcp` as a connector in ChatGPT, Claude or any
+MCP client and sign in. Then upload your data, ask your question, and get your
+predictions, all in the chat. Setup for each app:
 [AI agents and MCP](https://predictabl.tech/docs/agents/).
-
-**On your machine:** this library also includes a local MCP server that lists
-your models, shows how good they are, and gets predictions from them, using a token:
-
-```bash
-claude mcp add predictabl-local --env PREDICTABL_API_KEY=pk_... -- uvx --from "predictabl[mcp]" predictabl mcp
-```
-
-Then ask: *"Which of my customers are most likely to churn this month, and how
-good is that model?"* To upload or train from a chat, use the hosted server.
 
 ## Configuration
 
